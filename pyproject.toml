@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "satgpt"
+version = "0.1.0"
+description = ""
+authors = ["waltermaffy <walterm21@proton.me>"]
+
+[tool.poetry.dependencies]
+python = ">3.9.7,<3.12"
+streamlit = "^1.25.0"
+qrcode = "^7.4.2"
+openai = "^1.11.1"
+lnurl = "^0.4.1"
+requests = "^2.31.0"
+streamlit-javascript = "^0.1.5"
+replicate = "^0.25.2"
+aiohttp = "^3.9.5"
+langchain = "^0.2.3"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
