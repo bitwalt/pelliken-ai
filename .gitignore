@@ -1,6 +1,4 @@
 *.log
-data*
-mongo-data/
 __pycache__/
 *.pyc
 *.pyo
