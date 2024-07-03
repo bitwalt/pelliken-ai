@@ -1,9 +1,6 @@
-import asyncio
-
-import aiohttp
+import requests
 
 from lightning.processor import Processor
-
 
 class AlbyProcessor(Processor):
     BASE_URL = "https://api.getalby.com"
@@ -12,13 +9,10 @@ class AlbyProcessor(Processor):
         super().__init__()
         self.token = api_key
         self.active = True
-        self.session = None
+        self.session = requests.Session()
+        self.session.headers.update({"Authorization": f"Bearer {self.token}"})
 
-    async def init_session(self):
-        if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
-
-    async def create_invoice(
+    def create_invoice(
         self,
         amt: int,
         memo: str,
@@ -31,12 +25,7 @@ class AlbyProcessor(Processor):
         payer_email: str = "",
         payer_pubkey: str = "",
     ) -> dict:
-        await self.init_session()
         url = f"{self.BASE_URL}/invoices"
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json",
-        }
         data = {
             "amount": amt,
             "memo": memo,
@@ -50,80 +39,66 @@ class AlbyProcessor(Processor):
             "payer_pubkey": payer_pubkey,
         }
 
-        async with self.session.post(url, headers=headers, json=data) as response:
-            if response.status in [200, 201]:
-                return await response.json()
-            else:
-                response_text = await response.text()
-                raise Exception(
-                    f"Error creating invoice: {response.status} - {response_text}"
-                )
+        response = self.session.post(url, json=data)
+        if response.status_code in [200, 201]:
+            return response.json()
+        else:
+            raise Exception(
+                f"Error creating invoice: {response.status_code} - {response.text}"
+            )
 
-    async def has_been_paid(self, payment_hash: str) -> bool:
-        await self.init_session()
+    def has_been_paid(self, payment_hash: str) -> bool:
         url = f"{self.BASE_URL}/invoices/{payment_hash}"
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-        }
 
-        async with self.session.get(url, headers=headers) as response:
-            if response.status in [200, 201]:
-                invoice = await response.json()
-                return invoice.get("settled", False)
-            elif response.status == 404:
-                return False
-            else:
-                response_text = await response.text()
-                raise Exception(
-                    f"Error checking invoice status: {response.status} - {response_text}"
-                )
+        response = self.session.get(url)
+        if response.status_code in [200, 201]:
+            invoice = response.json()
+            return invoice.get("settled", False)
+        elif response.status_code == 404:
+            return False
+        else:
+            raise Exception(
+                f"Error checking invoice status: {response.status_code} - {response.text}"
+            )
 
-    async def get_invoice(self, payment_hash: str) -> dict:
-        await self.init_session()
+    def get_invoice(self, payment_hash: str) -> dict:
         url = f"{self.BASE_URL}/invoices/{payment_hash}"
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-        }
 
-        async with self.session.get(url, headers=headers) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                response_text = await response.text()
-                raise Exception(
-                    f"Error retrieving invoice: {response.status} - {response_text}"
-                )
+        response = self.session.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(
+                f"Error retrieving invoice: {response.status_code} - {response.text}"
+            )
 
-    async def close(self):
-        if self.session and not self.session.closed:
-            await self.session.close()
+    def close(self):
+        self.session.close()
 
-
-async def main():
+def main():
     cfg = {"token": "your_api_key_here"}
     alby_processor = AlbyProcessor(cfg["token"])
 
     try:
         # Create an invoice
-        invoice = await alby_processor.create_invoice(
+        invoice = alby_processor.create_invoice(
             amt=1000, memo="Test Invoice", description="This is a test"
         )
         print(invoice)
 
         # Check if the invoice has been paid
         payment_hash = invoice["payment_hash"]
-        paid = await alby_processor.has_been_paid(payment_hash)
+        paid = alby_processor.has_been_paid(payment_hash)
         print(f"Has been paid: {paid}")
 
         # Get invoice details
-        invoice_details = await alby_processor.get_invoice(payment_hash)
+        invoice_details = alby_processor.get_invoice(payment_hash)
         print(invoice_details)
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        await alby_processor.close()
-
+        alby_processor.close()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

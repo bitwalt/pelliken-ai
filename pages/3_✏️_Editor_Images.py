@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+from re import M
 
 import aiohttp
 import streamlit as st
@@ -9,18 +10,20 @@ from chat.utils import *
 from lightning.utils import handle_payment
 from replicate_api import restore_image, upscale_image
 from utils import init_page
+import requests
+
 
 EDITOR_MODES = ["⏫ Upscale Images", "💫 Restore Images"]
 
 
-async def process_image(editor_mode, image_b64, scaling_factor):
+def process_image(editor_mode, image_b64, scaling_factor):
     if editor_mode == "⏫ Upscale Images":
         return upscale_image(image_b64, scaling_factor)
     elif editor_mode == "💫 Restore Images":
         return restore_image(image_b64, scaling_factor)
 
 
-async def main():
+def main():
     init_page(image_page=True)
     st.title("✏️ Editor Images")
     ln_processor = st.session_state["ln_processor"]
@@ -40,14 +43,14 @@ async def main():
     if st.button("Edit Image"):
         if ln_processor:
             cfg = {"mode": "image_editor"}
-            payment_received = await handle_payment(ln_processor, cfg)
+            payment_received = handle_payment(ln_processor, cfg)
             if not payment_received:
                 st.error("Payment failed or was not completed. Please try again.")
                 st.stop()
             else:
                 st.balloons()
                 with st.spinner("Generating images..."):
-                    restored_image = await process_image(
+                    restored_image = process_image(
                         editor_mode, image_b64, scaling_factor
                     )
                     st.session_state["restored_image"] = restored_image
@@ -60,7 +63,7 @@ async def main():
         st.image(last_restored_image, caption="Restored Image", use_column_width=True)
 
         # Download image from URL
-        image_data = await download_image(last_restored_image)
+        image_data = download_image(last_restored_image)
         image_bytes = io.BytesIO(image_data)
         image_name = "restored_image.png"
 
@@ -73,18 +76,10 @@ async def main():
         )
 
 
-async def download_image(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                return await response.read()
-            else:
-                raise Exception(f"Failed to download image: {response.status}")
-
-
-def start():
-    asyncio.run(main())
+def download_image(url):
+    response = requests.get(url)
+    return response.content
 
 
 if __name__ == "__main__":
-    start()
+    main()

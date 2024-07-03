@@ -8,7 +8,6 @@ from PIL import Image
 
 from config import DEV, PRICING
 
-
 def generate_qr(url: str):
     img = qrcode.make(url)
     img_bytes = io.BytesIO()
@@ -17,9 +16,8 @@ def generate_qr(url: str):
     img = Image.open(img_bytes)
     return img
 
-
-async def handle_payment(processor, cfg, debug=DEV):
-    """Handle the payment process."""
+def handle_payment(processor, cfg, debug=DEV):
+    """Handle the payment process synchronously."""
     if debug:
         return True
     if not cfg:
@@ -39,7 +37,7 @@ async def handle_payment(processor, cfg, debug=DEV):
     if not processor.active:
         st.warning("Processor not active.")
         return False
-    payment_request = await processor.create_invoice(price, "Chatbot Payment")
+    payment_request = processor.create_invoice(price, "Chatbot Payment")
     payment_hash = payment_request.get("payment_hash")
     invoice = payment_request.get("payment_request")
     view.write("Please pay the invoice below to continue:")
@@ -53,7 +51,7 @@ async def handle_payment(processor, cfg, debug=DEV):
     retry = 0
     with st.spinner("Waiting for payment... (2 minutes timeout)"):
         while not payment_received:
-            has_paid = await processor.has_been_paid(payment_hash)
+            has_paid = processor.has_been_paid(payment_hash)
             if has_paid:
                 payment_received = True
                 view.empty()
@@ -65,7 +63,6 @@ async def handle_payment(processor, cfg, debug=DEV):
                     st.error("Payment elapsed. Please try again.")
                     break
     return payment_received
-
 
 @st.cache_data(ttl=30)
 def get_sat_price():

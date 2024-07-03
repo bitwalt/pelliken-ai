@@ -5,9 +5,7 @@ from chat.utils import PromptModel
 from config import MAX_TOKENS
 from lightning.utils import handle_payment
 
-
-async def handle_chat(prompt_model: PromptModel):
-
+def handle_chat(prompt_model: PromptModel):
     if st.session_state["prompt_model"] != prompt_model:
         st.session_state.prompt_model = prompt_model
         st.session_state.messages = [
@@ -32,7 +30,7 @@ async def handle_chat(prompt_model: PromptModel):
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Type your message..."):
-        payment_received = await handle_payment(
+        payment_received = handle_payment(
             st.session_state.ln_processor, {"mode": "chat"}
         )
         if payment_received:

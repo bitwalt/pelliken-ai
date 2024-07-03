@@ -1,13 +1,10 @@
-import asyncio
-
 import streamlit as st
 
 from chat.basic_chatbot import handle_chat
 from chat.utils import load_prompt_models, setup_prompt_model_selection
 from utils import init_page
 
-
-async def main():
+def main():
     init_page(image_page=False)
     st.title("💬 Chat with assistants")
     st.text(
@@ -23,8 +20,7 @@ async def main():
     }
     prompt_model = setup_prompt_model_selection(prompt_models)
 
-    await handle_chat(prompt_model)
-
+    handle_chat(prompt_model)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

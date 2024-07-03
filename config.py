@@ -12,6 +12,7 @@ MAX_TOKENS = 1000
 
 LOGO_PATH_WHITE = "./data/pelliken_logo.png"
 LOGO_PATH_BLACK = "./data/pelliken_logo2.png"
+FAVICON = "./data/pelliken-favicon.jpg"
 
 IMAGE_SIZE = {"SMALL": "256x256", "MEDIUM": "512x512", "LARGE": "1024x1024"}
 IMAGE_MODELS = ["DALLE-2", "DALLE-3"]

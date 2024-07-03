@@ -56,7 +56,7 @@ def get_download_image_link(image, filename, text):
     return href
 
 
-async def image_generation() -> None:
+def image_generation() -> None:
     init_page(image_page=True)
     st.title("🖼 Generate Images")
     input_text = st.text_input(
@@ -77,7 +77,7 @@ async def image_generation() -> None:
         "mode": "image_generation",
     }
     if st.button("Generate Images"):
-        payment_received = await handle_payment(ln_processor, cfg)
+        payment_received = handle_payment(ln_processor, cfg)
         if payment_received:
             st.balloons()
             st.success("Payment successful! Generating images...")
@@ -105,4 +105,4 @@ async def image_generation() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(image_generation())
+    image_generation()

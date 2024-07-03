@@ -1,0 +1,15 @@
+*.log
+data*
+mongo-data/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+ENV/
+.env
+.venv/
+.cache
+poetry.lock
+*.toml

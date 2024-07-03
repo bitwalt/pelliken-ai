@@ -49,7 +49,7 @@ def add_warning_message(image_page=False):
 
 
 def init_page(image_page=False):
-    st.set_page_config(page_title="PellikenAI", page_icon="⚡")
+    st.set_page_config(page_title="PellikenAI", page_icon=FAVICON)
     init_cache()
     add_logo()
     add_warning_message(image_page=image_page)
